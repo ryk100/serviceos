@@ -1,57 +1,88 @@
-import { DeployButton } from "@/components/deploy-button";
-import { EnvVarWarning } from "@/components/env-var-warning";
-import { AuthButton } from "@/components/auth-button";
-import { Hero } from "@/components/hero";
-import { ThemeSwitcher } from "@/components/theme-switcher";
-import { ConnectSupabaseSteps } from "@/components/tutorial/connect-supabase-steps";
-import { SignUpUserSteps } from "@/components/tutorial/sign-up-user-steps";
-import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
-import { Suspense } from "react";
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <main className="min-h-screen flex flex-col items-center">
-      <div className="flex-1 w-full flex flex-col gap-20 items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-            <div className="flex gap-5 items-center font-semibold">
-              <Link href={"/"}>Next.js Supabase Starter</Link>
-              <div className="flex items-center gap-2">
-                <DeployButton />
-              </div>
-            </div>
-            {!hasEnvVars ? (
-              <EnvVarWarning />
-            ) : (
-              <Suspense>
-                <AuthButton />
-              </Suspense>
-            )}
+    <main className="min-h-screen bg-zinc-950 text-white">
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6">
+        <header className="flex items-center justify-between py-6">
+          <div className="text-xl font-semibold tracking-tight">
+            ServiceOS
           </div>
-        </nav>
-        <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
-          <Hero />
-          <main className="flex-1 flex flex-col gap-6 px-4">
-            <h2 className="font-medium text-xl mb-4">Next steps</h2>
-            {hasEnvVars ? <SignUpUserSteps /> : <ConnectSupabaseSteps />}
-          </main>
-        </div>
 
-        <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
-          <p>
-            Powered by{" "}
-            <a
-              href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-              target="_blank"
-              className="font-bold hover:underline"
-              rel="noreferrer"
+          <div className="flex items-center gap-3">
+            <Link
+              href="/auth/login"
+              className="rounded-lg px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-900 hover:text-white"
             >
-              Supabase
-            </a>
-          </p>
-          <ThemeSwitcher />
-        </footer>
+              Log in
+            </Link>
+
+            <Link
+              href="/auth/sign-up"
+              className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-zinc-200"
+            >
+              Get started
+            </Link>
+          </div>
+        </header>
+
+        <section className="flex flex-1 items-center py-20">
+          <div className="max-w-3xl">
+            <div className="mb-5 inline-flex rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-sm text-zinc-400">
+              Business management for detailing shops
+            </div>
+
+            <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl">
+              Run your detailing business from one place.
+            </h1>
+
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-400">
+              Manage customers, vehicles, jobs, schedules and revenue without
+              spreadsheets or scattered notes.
+            </p>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/auth/sign-up"
+                className="rounded-lg bg-white px-5 py-3 font-medium text-black hover:bg-zinc-200"
+              >
+                Start using ServiceOS
+              </Link>
+
+              <Link
+                href="/auth/login"
+                className="rounded-lg border border-zinc-800 px-5 py-3 font-medium text-zinc-200 hover:bg-zinc-900"
+              >
+                Log in
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-4 pb-20 md:grid-cols-3">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+            <h2 className="font-semibold">Customers & vehicles</h2>
+            <p className="mt-2 text-sm leading-6 text-zinc-500">
+              Keep customer details, vehicles and service history together.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+            <h2 className="font-semibold">Jobs & scheduling</h2>
+            <p className="mt-2 text-sm leading-6 text-zinc-500">
+              Create jobs, track their status and see scheduled work in one
+              calendar.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+            <h2 className="font-semibold">Business overview</h2>
+            <p className="mt-2 text-sm leading-6 text-zinc-500">
+              Monitor open jobs, customers and monthly revenue from your
+              dashboard.
+            </p>
+          </div>
+        </section>
       </div>
     </main>
   );
