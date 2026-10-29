@@ -1,6 +1,12 @@
 import { Suspense } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 
+export const metadata = {
+  title: "ServiceOS",
+  description:
+    "Business management software for detailing shops and service businesses.",
+};
+
 export default function DashboardLayout({
   children,
 }: {

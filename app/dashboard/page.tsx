@@ -1,195 +1,89 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-import { connection } from "next/server";
-import StatusBadge from "@/components/jobs/status-badge";
+import Link from "next/link";
 
-export default async function DashboardPage() {
-  await connection();
-
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/auth/login");
-  }
-
-  const { data: company } = await supabase
-    .from("companies")
-    .select("id")
-    .eq("owner_id", user.id)
-    .maybeSingle();
-
-  if (!company) {
-    redirect("/onboarding");
-  }
-
-  const now = new Date();
-
-  const startOfToday = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate()
-  );
-
-  const endOfToday = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() + 1
-  );
-
-  const startOfMonth = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    1
-  );
-
-  const { count: customersCount } = await supabase
-    .from("customers")
-    .select("*", { count: "exact", head: true })
-    .eq("company_id", company.id);
-
-  const { count: todaysJobsCount } = await supabase
-    .from("jobs")
-    .select("*", { count: "exact", head: true })
-    .eq("company_id", company.id)
-    .gte("scheduled_at", startOfToday.toISOString())
-    .lt("scheduled_at", endOfToday.toISOString());
-
-  const { count: openJobsCount } = await supabase
-    .from("jobs")
-    .select("*", { count: "exact", head: true })
-    .eq("company_id", company.id)
-    .not("status", "in", '("paid","cancelled")');
-
-  const { data: paidJobs } = await supabase
-    .from("jobs")
-    .select("price")
-    .eq("company_id", company.id)
-    .eq("status", "paid")
-    .gte("completed_at", startOfMonth.toISOString());
-
-  const monthlyRevenue =
-    paidJobs?.reduce(
-      (total, job) => total + Number(job.price ?? 0),
-      0
-    ) ?? 0;
-
-  const { data: recentJobs } = await supabase
-    .from("jobs")
-    .select(`
-      id,
-      title,
-      status,
-      price,
-      scheduled_at
-    `)
-    .eq("company_id", company.id)
-    .order("created_at", { ascending: false })
-    .limit(5);
-
+export default function HomePage() {
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold">
-          Dashboard
-        </h1>
-
-        <p className="mt-2 text-zinc-400">
-          Overview of your business.
-        </p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5 transition-colors hover:border-zinc-700">
-          <div className="text-sm text-zinc-400">
-            Today&apos;s jobs
+    <main className="min-h-screen bg-zinc-950 text-white">
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6">
+        <header className="flex items-center justify-between py-6">
+          <div className="text-xl font-semibold tracking-tight">
+            ServiceOS
           </div>
 
-          <div className="mt-2 text-3xl font-semibold tracking-tight">
-            {todaysJobsCount ?? 0}
-          </div>
-        </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/auth/login"
+              className="rounded-lg px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-900 hover:text-white"
+            >
+              Log in
+            </Link>
 
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5 transition-colors hover:border-zinc-700">
-          <div className="text-sm text-zinc-400">
-            Customers
+            <Link
+              href="/auth/sign-up"
+              className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-zinc-200"
+            >
+              Get started
+            </Link>
           </div>
+        </header>
 
-          <div className="mt-2 text-3xl font-semibold tracking-tight">
-            {customersCount ?? 0}
-          </div>
-        </div>
+        <section className="flex flex-1 items-center py-20">
+          <div className="max-w-3xl">
+            <div className="mb-5 inline-flex rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-sm text-zinc-400">
+              Business management for detailing shops
+            </div>
 
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5 transition-colors hover:border-zinc-700">
-          <div className="text-sm text-zinc-400">
-            Monthly revenue
-          </div>
+            <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl">
+              Run your detailing business from one place.
+            </h1>
 
-          <div className="mt-2 text-3xl font-semibold tracking-tight">
-            €{monthlyRevenue.toFixed(2)}
-          </div>
-        </div>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-400">
+              Manage customers, vehicles, jobs, schedules and revenue without
+              spreadsheets or scattered notes.
+            </p>
 
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5 transition-colors hover:border-zinc-700">
-          <div className="text-sm text-zinc-400">
-            Open jobs
-          </div>
-
-          <div className="mt-2 text-3xl font-semibold tracking-tight">
-            {openJobsCount ?? 0}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-8 rounded-xl border border-zinc-800 overflow-hidden">
-        <div className="border-b border-zinc-800 px-5 py-4">
-          <h2 className="font-semibold">
-            Recent jobs
-          </h2>
-        </div>
-
-        {!recentJobs || recentJobs.length === 0 ? (
-          <div className="px-6 py-12 text-center text-zinc-500">
-            No jobs yet.
-          </div>
-        ) : (
-          <div className="divide-y divide-zinc-800">
-            {recentJobs.map((job) => (
-              <div
-                key={job.id}
-                className="flex items-center justify-between gap-6 px-5 py-4"
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/auth/sign-up"
+                className="rounded-lg bg-white px-5 py-3 font-medium text-black hover:bg-zinc-200"
               >
-                <div>
-                  <div className="font-medium">
-                    {job.title}
-                  </div>
+                Start using ServiceOS
+              </Link>
 
-                  <div className="mt-1 text-sm text-zinc-500">
-                    {job.scheduled_at
-                      ? new Date(
-                          job.scheduled_at
-                        ).toLocaleString()
-                      : "Not scheduled"}
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <div className="font-medium">
-                    €{Number(job.price).toFixed(2)}
-                  </div>
-
-<div className="mt-2">
-  <StatusBadge status={job.status} />
-</div>
-                </div>
-              </div>
-            ))}
+              <Link
+                href="/auth/login"
+                className="rounded-lg border border-zinc-800 px-5 py-3 font-medium text-zinc-200 hover:bg-zinc-900"
+              >
+                Log in
+              </Link>
+            </div>
           </div>
-        )}
+        </section>
+
+        <section className="grid gap-4 pb-20 md:grid-cols-3">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+            <h2 className="font-semibold">Customers & vehicles</h2>
+            <p className="mt-2 text-sm leading-6 text-zinc-500">
+              Keep customer details, vehicles and service history together.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+            <h2 className="font-semibold">Jobs & scheduling</h2>
+            <p className="mt-2 text-sm leading-6 text-zinc-500">
+              Create jobs, track their status and see scheduled work in one
+              calendar.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+            <h2 className="font-semibold">Business overview</h2>
+            <p className="mt-2 text-sm leading-6 text-zinc-500">
+              Monitor open jobs, customers and monthly revenue from your
+              dashboard.
+            </p>
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }
